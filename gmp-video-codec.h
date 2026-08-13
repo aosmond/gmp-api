@@ -39,6 +39,7 @@
 
 enum { kGMPPayloadNameSize = 32 };
 enum { kGMPMaxSimulcastStreams = 4 };
+enum { kGMPMaxSpatialLayers = 4 };
 
 enum GMPVideoCodecComplexity {
   kGMPComplexityNormal = 0,
@@ -199,6 +200,39 @@ enum GMPSliceMode {
   kGMPSliceSizeLimited
 };
 
+enum GMPVideoFormat {
+  kGMPVideoFormatUnknown,
+  kGMPVideoFormatComponent,
+  kGMPVideoFormatPAL,
+  kGMPVideoFormatNTSC,
+  kGMPVideoFormatSECAM,
+  kGMPVideoFormatMAC,
+  kGMPVideoFormatUnspecified,
+  kGMPVideoFormatInvalid
+};
+
+struct GMPVideoColorInfo {
+  bool mVideoSignalTypePresent;
+  GMPVideoFormat mVideoFormat;
+  bool mFullRange;
+  bool mColorDescriptionPresent;
+  uint8_t mColorPrimaries;
+  uint8_t mTransferCharacteristics;
+  uint8_t mColorMatrix;
+};
+
+struct GMPSpatialLayer {
+  uint32_t mWidth;
+  uint32_t mHeight;
+  float mFramerate;
+  uint32_t mTargetBitrate;  // kilobits/sec.
+  uint32_t mMaxBitrate;     // kilobits/sec.
+  GMPProfile mProfile;
+  GMPLevel mLevel;
+  uint32_t mQP;
+  GMPVideoColorInfo mColorInfo;
+};
+
 enum GMPApiVersion {
   kGMPVersion32 =
       1,  // leveraging that V32 had mCodecType first, and only supported H264
@@ -212,6 +246,9 @@ enum GMPApiVersion {
 
   // Adds temporal layer options for encoding
   kGMPVersion36 = 36,
+
+  // Adds VUI colour description and SVC spatial layer options for encoding
+  kGMPVersion37 = 37,
 };
 
 struct GMPVideoCodec {
@@ -251,6 +288,11 @@ struct GMPVideoCodec {
 
   // Since GMP version 36
   int32_t mTemporalLayerNum;
+
+  // Since GMP version 37
+  GMPVideoColorInfo mColorInfo;
+  uint32_t mSpatialLayerNum;
+  GMPSpatialLayer mSpatialLayers[kGMPMaxSpatialLayers];
 };
 
 // Either single encoded unit, or multiple units separated by 8/16/24/32
